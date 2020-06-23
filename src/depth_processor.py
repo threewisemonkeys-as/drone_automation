@@ -27,16 +27,20 @@ class DepthProcessor(object):
         self._process()
 
     def _process(self):
-        print(self.cloud.height)
-        print(self.cloud.width)
-        print(self.cloud.point_step)
-        print(self.cloud.row_step)
-        print(self.cloud.fields)
+        min_dist = [1000000, 1000000, 1000000
+                    ]  #min distance corresponding to [front , left , right]
         for p in self.pts_gen:
-            print(p[0])
-            print(p[0])
-            print(p[0])
-            break
+            if abs(p[0]) > abs(p[1]):
+                if p[0] > 0 and p[0] < min_dist[0]:
+                    min_dist[0] = p[0]
+            else:
+                if p[1] > 0:
+                    if p[1] < min_dist[1]:
+                        min_dist[1] = p[1]
+                else:
+                    if -1 * p[1] < min_dist[2]:
+                        min_dist[2] = -1 * p[1]
+        self.obstacle_features = min_dist
 
 
 if __name__ == "__main__":

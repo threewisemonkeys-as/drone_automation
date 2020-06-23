@@ -6,9 +6,10 @@ from __future__ import print_function
 import rospy
 from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
 from mavros_msgs.msg import State  # pylint: disable=import-error
-from mavros_msgs.srv import CommandBool, SetMode  # pylint: disable=import-error
+from mavros_msgs.srv import (CommandBool,  # pylint: disable=import-error
+                             SetMode)
 
-import utils
+from .. import utils
 
 
 class DroneController(object):
