@@ -4,7 +4,8 @@ Controller for drone automation using MAVROS
 ## Files  
 - `controller.py`: Contains core controller class
 - `waypoint.py`: Waypoint controller class for drone to traverse a list of points
-- `utils.py`: A collection of utility functions for converversion, unwrapping etc,
+- `depth_processor.py`: A node to process point cloud depth map
+- `utils.py`: A collection of utility functions for converversion, unwrapping etc.
 
 ## Requirements 
 - [ROS](http://wiki.ros.org/ROS/Installation)
@@ -12,57 +13,63 @@ Controller for drone automation using MAVROS
 - PX4 [Firmware](https://github.com/PX4/Firmware.git)
 - PX4 [Gazebo for MAVLink](https://github.com/PX4/sitl_gazebo)
 
+You can follow the steps given [here](https://dev.px4.io/v1.8.0/en/) for setting up your environment
+
 ## Usage 
 
-### Default PX4 Empty World
+### To set up this package
 
-To test in the default px4 empty world first run:
 ```bash
-$ roslaunch px4 mavros_posix_sitl.launch
+cd catkin_ws/src
+git clone https://github.com/threewisemonkeys-as/drone_automation.git 
+cd ..
+catkin build
+source devel/setup.bash
 ```
 
-Then in a seperate terminal:
+### Demo in empty world
+
 ```bash
-$ python waypoint.py
+roslaunch drone_automation iris_empty_world.launch
+rosrun drone_automation waypoint.py
 ```
 
-### Warehouse world with lidar or camera 
 
-To use the either the `iris_fpv_cam` model or `iris_rplidar` model, follow this procedure - 
+### Demo warehouse world with lidar, camera or depth
 
-***Note:*** You will need to replace `<path_to_Firmware>` with the approproate path in the commands below.
-
-1. Copy the required launch files into the px4 package:
-```back
-$ cp launch/* <path_to_Firmware>/launch/
-```
-
-2. Copy the required world files into px4 package:
+Models for the iris quadcopter with either depth, fpv or rplidar have been included. You can demo them in the warehouse gazebo world. For example
 ```bash
-$ cp world/* <path_to_Firmware>/Tools/sitl_gazebo/worlds/
+roslaunch drone_automation iris_depth_warehouse.launch
+rosrun drone_automation waypoint.py
 ```
 
-3. Copy the required rviz files into px4 package:
-```bash
-$ mkdir -p <path_to_Firmware>/Tools/sitl_gazebo/rviz/
-$ cp rviz/* <path_to_Firmware>/Tools/sitl_gazebo/rviz/
+The relevant topics should be displayed in RViz
+
+
+## API Example
+
+`controller.py` contains the core `Controller` class. This can be used as follows
+```python
+# Initialises controller object with its publishers, subscribers and clients
+drone = DroneController()
+
+# Drone takes off and lands
+drone.takeoff(2)
+drone.land()
 ```
 
-4. Launch the desired configuration:
-```bash
-$ roslaunch px4 test_iris_fpv_cam.launch
-```
-or
-```bash
-$ roslaunch px4 test_iris_rplidar.launch
-```
 
-5. Run the waypoint controller:
-```bash
-$ python waypoint.py
-```
+`waypoint.py` contains a `WaypointController` class which inherits from `Controller`. It can be used to traverse a path
+```python
+# Initialises controller object with its publishers, subscribers and clients
+wc = WaypointController()
 
-The camera / lidar topics should be displayed in RViz
+# Drone takes off, traverses given points and lands
+path = [(6, 0, 2), (6, 4, 2)]
+wc.takeoff()
+wc.traverse_path(path)
+wc.land()
+```
 
 
 ## TODO

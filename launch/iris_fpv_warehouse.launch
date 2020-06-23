@@ -1,8 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <!-- Transform publisher for rplidar_link from to map frame-->
-    <node pkg="tf" type="static_transform_publisher" name="laser" args="0 0 0 0 0 0 map rplidar_link 50"/>
-
     <!-- MAVROS posix SITL environment launch script -->
     <!-- launches MAVROS, PX4 SITL, Gazebo environment, and spawns vehicle -->
     <!-- vehicle pose -->
@@ -15,8 +12,8 @@
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/modified_warehouse.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/iris_rplidar/iris_rplidar.sdf"/>
+    <arg name="world" default="$(find drone_automation)/worlds/modified_warehouse.world"/>
+    <arg name="sdf" default="$(find drone_automation)/models/iris_fpv_cam/iris_fpv_cam.sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
     <!-- gazebo configs -->
     <arg name="gui" default="true"/>
@@ -55,12 +52,13 @@
         <arg name="fcu_url" value="$(arg fcu_url)"/>
         <arg name="respawn_mavros" value="$(arg respawn_mavros)"/>
     </include>
-	
 
 	<!-- For launching Rviz after a delay of 12 seconds-->
-		
-<arg name="node_start_delay" default="12.0" />  
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find mavlink_sitl_gazebo)/rviz/test_lidar.rviz" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
-  
+	<arg name="node_start_delay" default="12.0" />  
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find mavlink_sitl_gazebo)/rviz/test_cam.rviz" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+
+	
 
 </launch>
+
+

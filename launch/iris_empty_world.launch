@@ -12,8 +12,8 @@
     <!-- vehicle model and world -->
     <arg name="est" default="ekf2"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/modified_warehouse.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/iris_fpv_cam/iris_fpv_cam.sdf"/>
+    <arg name="world" default="$(find drone_automation)/worlds/empty.world"/>
+    <arg name="sdf" default="$(find drone_automation)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
     <!-- gazebo configs -->
     <arg name="gui" default="true"/>
@@ -52,13 +52,4 @@
         <arg name="fcu_url" value="$(arg fcu_url)"/>
         <arg name="respawn_mavros" value="$(arg respawn_mavros)"/>
     </include>
-
-	<!-- For launching Rviz after a delay of 12 seconds-->
-	<arg name="node_start_delay" default="12.0" />  
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find mavlink_sitl_gazebo)/rviz/test_cam.rviz" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
-
-	
-
 </launch>
-
-
