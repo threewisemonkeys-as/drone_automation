@@ -20,38 +20,40 @@ class WaypointController(DroneController):
         self.verbose = verbose
         self.reached = True
 
-    def prop_vel_goto(self, x, y, z, K=0.2, hold_duration=2):
+    def prop_vel_goto(self, x=None, y=None, z=None, K=0.2, hold_duration=1):
         """
         Goto a specified point using a proportional velocity controller
         """
-        rospy.loginfo("Going to (%s, %s, %s)", x, y, z)
+        self.set_target_pos(x, y, z)
+        rospy.loginfo("Going to %s", self.target_pos)
+        
         self.reached = False
-        while not (utils.dist(utils.unwrap_pose(self.pose.pose)[0],
-                              (x, y, z)) < self.T
+        while not (utils.dist(
+                utils.unwrap_pose(self.pose.pose)[0], self.target_pos) < self.T
                    and utils.norm(utils.unwrap_twist(
                        self.vel.twist)[0]) < K * self.T):
             if self.current_state.mode != "OFFBOARD":
                 self.set_mode("OFFBOARD")
 
-            vx = K * (x - self.pose.pose.position.x)
-            vy = K * (y - self.pose.pose.position.y)
-            vz = K * (z - self.pose.pose.position.z)
+            vx = K * (self.target_pos.x - self.pose.pose.position.x)
+            vy = K * (self.target_pos.y - self.pose.pose.position.y)
+            vz = K * (self.target_pos.z - self.pose.pose.position.z)
             self.set_vel(vx, vy, vz)
-            self.rate.sleep()
+            # self.rate.sleep()
 
         self.set_vel(0, 0, 0)
         self.reached = True
+        rospy.loginfo("Reached %s", utils.unwrap_pose(self.pose.pose)[0])
         rospy.sleep(rospy.Duration(hold_duration))
 
-    def goto_relative(self, x_rel, y_rel, z_rel, K=0.2, hold_duration=2):
+    def goto_relative(self, x=0, y=0, z=0, K=0.2, hold_duration=1):
         """
         Goto a relative position using a proportional velocity controller
         """
-        curr_position = self.pose.pose.position
-        goal_x = curr_position.x + x_rel
-        goal_y = curr_position.y + y_rel
-        goal_z = curr_position.z + z_rel
-        self.prop_vel_goto(goal_x, goal_y, goal_z, K, hold_duration)
+        self.target_pos.x += x
+        self.target_pos.y += y
+        self.target_pos.z += z
+        self.prop_vel_goto(K=K, hold_duration=hold_duration)
 
     def traverse_path(self, path, hold_duration=2, takeoff=False, land=False):
         """

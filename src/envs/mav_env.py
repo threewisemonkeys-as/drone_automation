@@ -13,23 +13,31 @@ from .. import DepthProcessor, WaypointController
 
 class MavEnv(gym.Env):
     def __init__(self, launch_file):
-
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         self.launch = roslaunch.parent.ROSLaunchParent(uuid, [launch_file])
         self.launch.start()
-
-        self.unpause_sim = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
-        self.pause_sim = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
-        self.reset_sim = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
-
+        rospy.init_node("mav_env")
+        rospy.wait_for_service('/gazebo/reset_simulation')
+        rospy.wait_for_service('/gazebo/unpause_physics')
+        rospy.wait_for_service('/gazebo/pause_physics')
+        self._unpause_sim = rospy.ServiceProxy('/gazebo/unpause_physics',
+                                               Empty,
+                                               persistent=True)
+        self._pause_sim = rospy.ServiceProxy('/gazebo/pause_physics',
+                                             Empty,
+                                             persistent=True)
+        self._reset_sim = rospy.ServiceProxy('/gazebo/reset_world',
+                                             Empty,
+                                             persistent=True)
         self.controller = WaypointController()
         self.steps_taken = 0
+        print("[ENV] Initialised")
 
     def __del__(self):
         self.close()
 
-    def _exectute_action(self, action):
+    def _execute_action(self, action):
         raise NotImplementedError
 
     def _observe(self):
@@ -41,9 +49,25 @@ class MavEnv(gym.Env):
     def _update_done(self):
         raise NotImplementedError
 
+    def pause_sim(self):
+        print("[ENV] Pausing sim")
+        rospy.wait_for_service('/gazebo/pause_physics')
+        self._pause_sim()
+
+    def unpause_sim(self):
+        print("[ENV] Unpaussing sim")
+        rospy.wait_for_service('/gazebo/unpause_physics')
+        self._unpause_sim()
+
+    def reset_sim(self):
+        print("[ENV] Resetting sim")
+        rospy.wait_for_service('/gazebo/reset_world')
+        self._reset_sim()
+
     def step(self, action):
+        print("[ENV] Taking step", action)
         self.unpause_sim()
-        self._exectute_action(action)
+        self._execute_action(action)
         self.pause_sim()
         self.steps_taken += 1
         obs = self._observe()
@@ -53,6 +77,7 @@ class MavEnv(gym.Env):
         return obs, reward, done, info
 
     def reset(self):
+        print("[ENV] Resetting env")
         self.steps_taken = 0
         self.reset_sim()
         self.unpause_sim()
@@ -65,4 +90,5 @@ class MavEnv(gym.Env):
         raise NotImplementedError  # TODO
 
     def close(self):
+        print("[ENV Shutting down")
         self.launch.shutdown()

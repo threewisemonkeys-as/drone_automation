@@ -6,8 +6,8 @@ from __future__ import print_function
 import rospy
 from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
 from mavros_msgs.msg import State  # pylint: disable=import-error
-from mavros_msgs.srv import (CommandBool,  # pylint: disable=import-error
-                             SetMode)
+from mavros_msgs.srv import CommandBool  # pylint: disable=import-error
+from mavros_msgs.srv import SetMode
 
 from .. import utils
 
@@ -23,8 +23,10 @@ class DroneController(object):
 
         self.current_state = State()
         self.pose = PoseStamped()
+        self.target_pos = utils.Position(0, 0, 0)
         self.setpoint_pos = PoseStamped()
         self.vel = TwistStamped()
+        self.target_vel = utils.Velocity(0, 0, 0, 0)
         self.setpoint_vel = Twist()
 
         self.state_sub = rospy.Subscriber("mavros/state",
@@ -113,33 +115,43 @@ class DroneController(object):
             rospy.logdebug("Setting mode to %s unsuccessful", mode)
 
     def _publish_pos(self):
+        self.setpoint_pos.pose.position.x = self.target_pos.x
+        self.setpoint_pos.pose.position.y = self.target_pos.y
+        self.setpoint_pos.pose.position.z = self.target_pos.z
         self.setpoint_pos_pub.publish(self.setpoint_pos)
+
+    def set_target_pos(self, x=None, y=None, z=None):
+        if x is not None: self.target_pos.x = x
+        if y is not None: self.target_pos.y = y
+        if z is not None: self.target_pos.z = z
 
     def set_pos(self, x=None, y=None, z=None):
         """
         Sets position of drone by publishing local position to move to,
         to the setpoint_position/local topic.
         """
-
-        if x is not None: self.setpoint_pos.pose.position.x = x
-        if y is not None: self.setpoint_pos.pose.position.y = y
-        if z is not None: self.setpoint_pos.pose.position.z = z
-
+        self.set_target_pos(x, y, z)
         self._publish_pos()
 
     def _publish_vel(self):
+        self.setpoint_vel.linear.x = self.target_vel.x
+        self.setpoint_vel.linear.y = self.target_vel.y
+        self.setpoint_vel.linear.z = self.target_vel.z
+        self.setpoint_vel.angular.z = self.target_vel.w
         self.setpoint_vel_pub.publish(self.setpoint_vel)
+
+    def set_target_vel(self, vx=None, vy=None, vz=None, az=None):
+        if vx is not None: self.target_vel.x = vx
+        if vy is not None: self.target_vel.y = vy
+        if vz is not None: self.target_vel.z = vz
+        if az is not None: self.target_vel.w = az
 
     def set_vel(self, vx=None, vy=None, vz=None, az=None):
         """
         Sets position of drone by publishing local position to move to,
         to the setpoint_position/local topic.
         """
-        if vx is not None: self.setpoint_vel.linear.x = vx
-        if vy is not None: self.setpoint_vel.linear.y = vy
-        if vz is not None: self.setpoint_vel.linear.z = vz
-        if az is not None: self.setpoint_vel.angular.z = az
-
+        self.set_target_vel(vx, vy, vz, az)
         self._publish_vel()
 
     def takeoff(self, h=1):
@@ -155,21 +167,21 @@ class DroneController(object):
         self.arm()
 
         # Need to start streaming setpoints before entering OFFBOARD mode
-        self.init_stream(self.rate)
+        # self.init_stream(self.rate)
 
         rospy.loginfo("Taking off")
-        x = self.pose.pose.position.x
-        y = self.pose.pose.position.y
-        z = h
 
-        while utils.dist(utils.unwrap_pose(self.pose.pose)[0],
-                         (x, y, z)) > 0.1:
+        # Set position to move to
+        self.set_target_pos(z=h)
+
+        while utils.dist(
+                utils.unwrap_pose(self.pose.pose)[0], self.target_pos) > 0.1:
             # Attempt to enter into OFFBOARD mode
             if self.current_state.mode != "OFFBOARD":
                 self.set_mode("OFFBOARD")
 
-            # Set position to move to
-            self.set_pos(x, y, z)
+            # Publish required velocity
+            self._publish_pos()
             self.rate.sleep()
 
 

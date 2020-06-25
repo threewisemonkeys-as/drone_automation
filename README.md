@@ -1,7 +1,7 @@
 # drone_automation
 Controller for drone automation using MAVROS
 
-## Files  
+## Contents  
 - `controller.py`: Contains core controller class
 - `waypoint.py`: Waypoint controller class for drone to traverse a list of points
 - `depth_processor.py`: A node to process point cloud depth map

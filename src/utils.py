@@ -2,6 +2,36 @@
 # Atharv Sonwane <atharvs.twm@gmail.com>
 
 import math
+from collections import namedtuple
+
+
+class Position:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __iter__(self):
+        return iter([self.x, self.y, self.z])
+
+    def __str__(self):
+        return "(" + str(self.x) + ", " + str(self.y) + ", " + str(
+            self.z) + ")"
+
+
+class Velocity:
+    def __init__(self, x, y, z, w):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.w = w
+
+    def __iter__(self):
+        return iter([self.x, self.y, self.z, self.w])
+
+    def __str__(self):
+        return "(" + str(self.x) + ", " + str(self.y) + ", " + str(
+            self.z) + ", " + str(self.w) + ")"
 
 
 def norm(x):
