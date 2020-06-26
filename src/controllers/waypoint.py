@@ -14,13 +14,13 @@ class WaypointController(DroneController):
     """
     Waypoint controller for drone
     """
-    def __init__(self, threshold_dist=0.2, hover_time=1, verbose=True):
+    def __init__(self, threshold_dist=0.1, hover_time=0.5, verbose=True):
         super(WaypointController, self).__init__()
         self.T = threshold_dist
         self.verbose = verbose
         self.reached = True
 
-    def prop_vel_goto(self, x=None, y=None, z=None, K=0.2, hold_duration=1):
+    def prop_vel_goto(self, x=None, y=None, z=None, K=0.1, hold_duration=0.5):
         """
         Goto a specified point using a proportional velocity controller
         """
@@ -44,9 +44,9 @@ class WaypointController(DroneController):
         self.set_vel(0, 0, 0)
         self.reached = True
         rospy.loginfo("Reached %s", utils.unwrap_pose(self.pose.pose)[0])
-        rospy.sleep(rospy.Duration(hold_duration))
+        # rospy.sleep(rospy.Duration(hold_duration))
 
-    def goto_relative(self, x=0, y=0, z=0, K=0.2, hold_duration=1):
+    def goto_relative(self, x=0, y=0, z=0, K=0.1, hold_duration=0.5):
         """
         Goto a relative position using a proportional velocity controller
         """
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     rospy.init_node("waypoint_controller")
 
     # path = [(0, 0, 2), (0, 2, 2), (2, 2, 2), (2, 0, 2), (0, 0, 2)]
-    path = [(6, 0, 2), (6, 4, 2)]
+    path = [(0.5, 0, 1), (0.5, -1, 1)]
 
     wc = WaypointController()
     wc.takeoff()

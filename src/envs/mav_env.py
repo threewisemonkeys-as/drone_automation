@@ -81,7 +81,7 @@ class MavEnv(gym.Env):
         self.steps_taken = 0
         self.reset_sim()
         self.unpause_sim()
-        self.controller.takeoff(1.5)
+        self.controller.takeoff()
         self.pause_sim()
         obs = self._observe()
         return obs

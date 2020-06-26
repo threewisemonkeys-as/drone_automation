@@ -19,16 +19,16 @@ gym.envs.registration.register(
 rospack = rospkg.RosPack()
 package_path = rospack.get_path('drone_automation')
 default_launch_file_path = os.path.join(package_path,
-                                        "launch/iris_depth_warehouse.launch")
+                                        "launch/iris_depth_maze.launch")
 
 MAX_STEPS = 100
-ACTION_LOOKUP = {0: "FORWARD", 1: "LEFT", 2: "RIGHT"}
+ACTION_LOOKUP = {0: "FORWARD", 1: "RIGHT", 2: "LEFT"}
 
 
 class SimpleDepthMavEnv(MavEnv):
     def __init__(self,
                  launch_file=default_launch_file_path,
-                 move_dist=1,
+                 move_dist=0.5,
                  n_features=3):
         super(SimpleDepthMavEnv, self).__init__(launch_file)
 
@@ -45,9 +45,9 @@ class SimpleDepthMavEnv(MavEnv):
         if action == 0:
             self.controller.goto_relative(x=self.move_dist)
         elif action == 1:
-            self.controller.goto_relative(y=self.move_dist)
+            self.controller.goto_relative(y=-self.move_dist)
         elif action == 2:
-            self.controller.goto_relative(y=-1 * self.move_dist)
+            self.controller.goto_relative(y=self.move_dist)
 
     def _observe(self):
         return self._depth_processor.obstacle_features
